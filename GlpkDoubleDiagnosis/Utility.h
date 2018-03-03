@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <hash_map>
+#include <hash_set>
 using namespace std;
 
 class Utility

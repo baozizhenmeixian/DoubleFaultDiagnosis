@@ -12,6 +12,8 @@ typedef struct tagPRE_PROCESS_DATA{
 	std::vector<string> op;
 	std::vector<string> up;
 	std::vector<string> opover2;
+	std::hash_set<string> fp1;
+	std::hash_set<string> fp2;
 	std::vector<std::vector<string>> termsDimension;
 
 }PRE_PROCESS_DATA;

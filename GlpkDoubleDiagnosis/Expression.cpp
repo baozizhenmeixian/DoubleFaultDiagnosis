@@ -949,12 +949,79 @@ bool getPreProcessData(string expression,PRE_PROCESS_DATA& preData, bool DNF1CNF
 	vector<string> op;
 	vector<string> up;
 	vector<string> opover2;
+	hash_set<string> fp1;
+	hash_set<string> fp2;
 	if(DNF1CNF0){
 		if(!generateOTPandUTP(expression,op,up))
 			return false;
 		//生成两项以上的otps
 		if(!generateOTPover2(expression,opover2))
 			return false;
+		//生成fp的HD距离
+		hash_set<string> tpSet;
+		vector<string>::iterator iter;
+		for (iter = up.begin(); iter != up.end(); iter++)
+		{
+			tpSet.insert(*iter);
+		}
+		for (iter = op.begin(); iter != op.end(); iter++)
+		{
+			tpSet.insert(*iter);
+		}
+		for (iter = opover2.begin(); iter != opover2.end(); iter++)
+		{
+			tpSet.insert(*iter);
+		}
+		
+		for (iter = up.begin(); iter != up.end(); iter++)
+		{
+			for (int i = 0; i < (*iter).size(); i++)
+			{
+				if ((*iter).at(i) == '1')
+				{
+					string temp = *iter;
+					temp.at(i) = '0';
+					if (tpSet.count(temp) == 0)
+					{
+						fp1.insert(temp);
+					}
+				}
+				else
+				{
+					string temp = *iter;
+					temp.at(i) = '1';
+					if (tpSet.count(temp) == 0)
+					{
+						fp1.insert(temp);
+					}
+				}
+			}
+		}
+		hash_set<string>::iterator it;
+		for (it = fp1.begin(); it != fp1.end(); it++)
+		{
+			for (int i = 0; i < (*it).size(); i++)
+			{
+				if ((*it).at(i) == '1')
+				{
+					string temp = *it;
+					temp.at(i) = '0';
+					if (tpSet.count(temp) == 0 && fp1.count(temp) == 0)
+					{
+						fp2.insert(temp);
+					}
+				}
+				else
+				{
+					string temp = *it;
+					temp.at(i) = '1';
+					if (tpSet.count(temp) == 0 && fp1.count(temp) == 0)
+					{
+						fp2.insert(temp);
+					}
+				}
+			}
+		}
 	}else
 	{
 		if(!generateOFPandUFP(expression,op,up))
@@ -980,6 +1047,8 @@ bool getPreProcessData(string expression,PRE_PROCESS_DATA& preData, bool DNF1CNF
 	preData.op=op;
 	preData.up=up;
 	preData.opover2=opover2;
+	preData.fp1 = fp1;
+	preData.fp2 = fp2;
 	preData.termsDimension=termsDimension;
 
 	return true;

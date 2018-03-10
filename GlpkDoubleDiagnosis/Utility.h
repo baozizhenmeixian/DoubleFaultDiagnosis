@@ -7,6 +7,7 @@
 #include <sstream>
 #include <hash_map>
 #include <hash_set>
+#include "HierarchyNode.h"
 using namespace std;
 
 class Utility
@@ -42,6 +43,8 @@ public:
 	vector<vector<int>> getConnectedRegion(string exp, bool trueOrFalsePoint);
 	vector<int> getTermsOpCount(string exp,bool DNF1CNF0);
 	bool isExpressionsEquivalent(string exp1, string exp2);
+	bool Utility::checkTestDiffer(string test, string exprOri/*原表达式*/, string expr/*变体*/);
+	bool initHierarchyRelation(hash_map<string,HierarchyNode>& hierarchyNodeMap);
 
 	//对表达式进行预处理，将项才分到terms中，vars记录字母是否出现
 	void mutantsPreproccess(string exp, vector<string> &terms, vector<vector<string>> &literals_in_terms, bool (&vars)[26]);
@@ -52,5 +55,7 @@ public:
 	string replaceDoubleTerms(string exp, vector<string> terms, int a, int b, string term1, string term2);
 
 	int getTermPosition(vector<string> terms, string term);
+
+	bool getBelowNodeByCondition(int condition, string faultType, hash_map<string, HierarchyNode>& hierarchyMap, hash_set<HierarchyNode>& nodeSet);
 };
 

@@ -13,6 +13,7 @@
 #include "LOFGenerateCellsForMutants.h"
 #include "LRFGenerateCellsForMutants.h"
 #include "TOFGenerateCellsForMutants.h"
+#include "HierarchyNode.h"
 #include "Utility.h"
 #include "DnfMutant.h"
 #include "FaultDetection.h"
@@ -81,8 +82,86 @@ bool checkTestSet(
 		bool v2 = (uti.evaluateMutant(oriexp, faultexp, testcase));
 		bool v = v1 ^ v2;//两个值相同则为假，不同则为真,不过这两个资源好浪费时间呀，明明有更优的算法
 		if (v){
-			if (v1 && !v2) differType.push_back("s");
-			else differType.push_back("e");
+			if (v1 && !v2)
+			{
+				differType.push_back("s");
+			}else {
+				differType.push_back("e");
+			}
+			differTStr.push_back(testset[i]);
+			differTCsol.push_back(CCommonFuncs.getTModelIndexOf01Str(testset[i], vOdd));
+		}
+		else
+		{
+			if (v1) unformityType.push_back("t");
+			else unformityType.push_back("f");
+			unformityStr.push_back(testset[i]);
+			unformityTCsol.push_back(CCommonFuncs.getTModelIndexOf01Str(testset[i], vOdd));
+		}
+	}
+	if (differTCsol.size() == 0)
+		return true;
+	else
+		return false;
+}
+
+bool checkTestSetCalHd(
+	vector<string> testset/*生成的测试用例集合，如果测试用例全部通过，则表示没有问题*/,
+	string exprOri/*原表达式*/,
+	string expr/*变体*/,
+	vector<int>& unformityTCsol, /*结果一致的节点，为无效测试点*/
+	vector<int>& differTCsol, /*结果不一致的节点，为有效测试点*/
+	vector<string>& unformityStr, /*结果一致的节点，为无效测试点*/
+	vector<string>& differTStr, /*结果不一致的节点，为有效测试点*/
+	vector<string>& unformityType,
+	vector<string>& differType,
+	vector<int>& hdDistance,
+	PRE_PROCESS_DATA& preData,
+	bool vOdd)
+{
+	Utility uti;
+	CCommonFuncs CCommonFuncs;
+
+	string oriexp = exprOri;
+	string faultexp = expr;
+	for (int i = 0; i<testset.size(); i++)
+	{
+		string testcase = testset[i];
+		bool v1 = (uti.evaluate(oriexp, testcase));
+		bool v2 = (uti.evaluateMutant(oriexp, faultexp, testcase));
+		bool v = v1 ^ v2;//两个值相同则为假，不同则为真,不过这两个资源好浪费时间呀，明明有更优的算法
+		if (v){
+			if (v1 && !v2)
+			{
+				differType.push_back("s");
+				if (std::count(preData.up.begin(), preData.up.end(), testcase))
+				{
+					hdDistance.push_back(1);
+				}
+				else if (std::count(preData.op.begin(), preData.op.end(), testcase))
+				{
+					hdDistance.push_back(2);
+				}
+				//3代表大于2
+				else{
+					hdDistance.push_back(3);
+				}
+			}
+			else {
+				differType.push_back("e");
+				if (preData.fp1.count(testcase))
+				{
+					hdDistance.push_back(-1);
+				}
+				else if (preData.fp2.count(testcase))
+				{
+					hdDistance.push_back(-2);
+				}
+				//3代表大于2
+				else{
+					hdDistance.push_back(-3);
+				}
+			}
 			differTStr.push_back(testset[i]);
 			differTCsol.push_back(CCommonFuncs.getTModelIndexOf01Str(testset[i], vOdd));
 		}
@@ -545,6 +624,43 @@ bool checkTestDiffer(string test, string exprOri/*原表达式*/, string expr/*变体*
 	return v;
 }
 
+//诊断——用最优测试用例+层次关系
+//生成变体的同时进行判断，而不是把变体全部生成后判断
+bool diagnosisByHierarchy(
+	string oriExp,//原表达式
+	string faultExp,//待测表达式
+	vector<vector<string>> optiUniformitySet,//最优无效点
+	vector<vector<string>> optiDifferSet,//最优有效点
+	vector<HierarchyNode> hierarchyEntrySet
+)
+{
+	for (int i = 0; i < hierarchyEntrySet.size; i++){
+	//对每个连通图进行遍历
+		HierarchyNode root = hierarchyEntrySet.at(i);
+		string faultType = root.getValue;
+		diagnosisGivenFaultType()
+	}
+
+}
+
+string diagnosisGivenFaultType(
+	string oriExp,//原表达式
+	string faultExp,//待测表达式
+	string faultType, //缺陷类型
+	vector<vector<string>> optiUniformitySet,//最优无效点
+	vector<vector<string>> optiDifferSet,//最优有效点
+	HierarchyNode root//当前缺陷对应节点
+
+	){
+	if (root.getValue == NULL){
+		return "no";
+	}
+
+
+
+}
+
+
 //诊断——用最优测试用例
 bool diagnosis(
 	string oriExp, //原表达式
@@ -627,9 +743,14 @@ int main(int argc, char* argv[])
 	//分解表达式
 	PRE_PROCESS_DATA preData;
 
+	//层次关系map
+	hash_map<string,HierarchyNode> hierarchyEntry;
+
 	clock_t time1 = clock();
 	//转换为IDNF
 	Utility uti;
+	//初始化层次关系
+	uti.initHierarchyRelation(hierarchyEntry);
 	vector<string> terms = uti.extractDNFstyle(expression);
 	string model = uti.generateModel(expression);
 	string newExp = "";
@@ -1274,11 +1395,12 @@ int main(int argc, char* argv[])
 		vector<int> uniformityTCsol, differTCsol;
 		vector<string> uniformityStr, differStr;
 		vector<string> uniformityType, differType;
+		vector<int> hdDistance;
 		//获取有效点和无效点
-		checkTestSet(
+		checkTestSetCalHd(
 			testset,
 			newExp, faultExpression,
-			uniformityTCsol, differTCsol, uniformityStr, differStr, uniformityType, differType, vOdd);
+			uniformityTCsol, differTCsol, uniformityStr, differStr, uniformityType, differType, hdDistance,preData,vOdd);
 
 		//这里测试根据有收缩点判断扩张点对应的term
 		vector<string> shrinkTestCase;
@@ -2043,6 +2165,13 @@ int main(int argc, char* argv[])
 		maybeFaultTypes.push_back("CORFxLOF");	//14、CORFxLOF
 		maybeFaultTypes.push_back("CORFxLIF");	//14、CORFxLIF
 		maybeFaultTypes.push_back("CORFxLRF");	//14、CORFxLRF
+
+		//todo 初次筛选缺陷，根据汉明距离和收缩扩张特性排除缺陷，表现为层次关系节点的isOut置为1；
+
+
+		//根据层次关系筛选变体
+		//diagnosisByHierarchy（）
+
 
 		for (int i = 0; i < maybeFaultTypes.size(); i++){
 			string faultType = maybeFaultTypes.at(i);

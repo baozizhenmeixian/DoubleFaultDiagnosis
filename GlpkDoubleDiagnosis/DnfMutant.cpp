@@ -8792,3 +8792,146 @@ Mutants DnfMutant::generateCORFxLRFWithOrderCase2doublemutants(string exp, vecto
 	}
 	return mutants;
 }
+
+//生成变体的同时check有效点和无效点
+Mutants DnfMutant::diagnosisSingleTermLIFxLIFdoublemutants
+(	string exp,
+    string faultExp,//待测表达式
+	hash_set<string> outMutant,//排除的变体格式
+	vector<vector<string>> optiUniformitySet,//最优无效点
+	vector<vector<string>> optiDifferSet,//最优有效点)
+	hash_map<string,HierarchyNode>& hierarchyMap)
+{
+	Mutants mutants(exp);
+	bool vars[26];
+	for (int i = 0; i < 26; i++)
+	{
+		vars[i] = false;
+	}
+
+	string oriExp(exp);
+	Utility uti;
+	vector<string> terms;
+	vector<vector<string>> terms_literals;
+	vector<string> oriterms;
+	vector<string> faultterms;
+	uti.mutantsPreproccess(oriExp, terms, terms_literals, vars);
+
+	for (int i = 0; i < terms.size(); i++)//【遍历term】
+	{
+		oriterms.clear();
+		oriterms = { terms[i] };
+		int pos = oriExp.find(terms[i]);//项在表达式中开始的位置
+		string new_term11 = terms[i];
+		string new_term12 = terms[i];
+
+		for (int j = 0; j < 26; j++)//【遍历不在当前项中的词literals】
+		{
+			char toInsert1 = 'a' + j;
+			if (vars[j] && terms[i].find(toInsert1) == string::npos)//不在当前项中的词literal
+			{
+				string s11, s12;
+				s11 += toInsert1;//不在当前项中的词literals
+				s12 += '!';
+				s12 += toInsert1;
+
+				new_term11 = terms[i];//当前项
+				new_term12 = terms[i];
+
+				//第一次LIF
+				new_term11 += s11;
+				new_term12 += s12;
+
+				for (int k = j + 1; k < 26; k++)//遍历other term剩下的词literal
+				{
+					char toInsert2 = 'a' + k;
+					if (vars[k] && terms[i].find(toInsert2) == string::npos)
+					{
+						string s21, s22;
+						s21 += toInsert2;
+						s22 += '!';
+						s22 += toInsert2;
+
+						string new_term21, new_term22, new_term23, new_term24;
+						new_term21 = new_term11;
+						new_term22 = new_term11;
+						new_term23 = new_term12;
+						new_term24 = new_term12;
+
+						//第二次LIF
+						new_term21 += s21;
+						new_term22 += s22;
+						new_term23 += s21;
+						new_term24 += s22;
+
+						string m1;
+						string _mutant1 = oriExp;
+						//变体1
+						_mutant1.replace(_mutant1.begin() + pos, _mutant1.begin() + pos + terms[i].size(), new_term21);
+						m1.append(_mutant1);
+						faultterms = { new_term21 };
+						
+						//todo check
+						for (int i = 0; i < optiUniformitySet.size(); i++){
+							//printf("point: %s, faultExp: %s, mutant: %s\n", optiUniformitySet[i][0].c_str(), faultExp.c_str(), mutant.c_str());
+							if (uti.checkTestDiffer(optiUniformitySet[i][0], faultExp, m1)){
+								bool v1 = uti.evaluate(oriExp, optiUniformitySet[i][0]);
+								int condition = 0;
+								if (v1){
+								//原表达式为1，对变体而言又是有效点，所以是收缩点
+									condition = 1;
+								}
+								else{
+									condition = 2;
+								}
+								//获取层次关系下面需要排除的变体格式(遍历图)
+								hash_set<HierarchyNode> nodeSet;
+								uti.getBelowNodeByCondition(condition, "liflif", hierarchyMap, nodeSet);
+								for (hash_set<HierarchyNode>::iterator iter = nodeSet.begin(); iter != nodeSet.end(); iter++){
+									//第一次缺陷后的表达式
+									//exp = oriExp;
+									//exp = exp.replace(exp.begin() + pos, exp.begin() + pos + terms[i].size(), new_term11);
+									//在第i个term上发生了lif缺陷，变成了new_term11
+									string spec = "lif" + i + new_term11 + (*iter).getValue;
+									outMutant.insert(spec);
+								}
+								break;
+							}
+						}
+
+						mutants.addMutant(m1, "DLIIF", oriterms, faultterms);
+						faultterms.clear();
+
+						string m2;
+						string _mutant2 = oriExp;
+						//变体2
+						_mutant2.replace(_mutant2.begin() + pos, _mutant2.begin() + pos + terms[i].size(), new_term22);
+						m2.append(_mutant2);
+						faultterms = { new_term22 };
+						mutants.addMutant(m2, "DLIIF", oriterms, faultterms);
+						faultterms.clear();
+
+						string m3;
+						string _mutant3 = oriExp;
+						//变体3
+						_mutant3.replace(_mutant3.begin() + pos, _mutant3.begin() + pos + terms[i].size(), new_term23);
+						m3.append(_mutant3);
+						faultterms = { new_term23 };
+						mutants.addMutant(m3, "DLIIF", oriterms, faultterms);
+						faultterms.clear();
+
+						string m4;
+						string _mutant4 = oriExp;
+						//变体4
+						_mutant4.replace(_mutant4.begin() + pos, _mutant4.begin() + pos + terms[i].size(), new_term24);
+						m4.append(_mutant4);
+						faultterms = { new_term24 };
+						mutants.addMutant(m4, "DLIIF", oriterms, faultterms);
+						faultterms.clear();
+					}
+				}
+			}
+		}
+	}
+	return mutants;
+}

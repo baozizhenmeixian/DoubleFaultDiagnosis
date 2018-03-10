@@ -863,3 +863,56 @@ string Utility::replaceDoubleTerms(string exp, vector<string> terms, int a, int 
 	return exp;
 }
 
+bool Utility::checkTestDiffer(string test, string exprOri/*原表达式*/, string expr/*变体*/){
+	Utility uti;
+	bool v = (uti.evaluate(exprOri, test)) ^ (uti.evaluateMutant(exprOri, expr, test));//异或：不同为真，相同为假
+	return v;
+}
+
+bool initHierarchyRelation(hash_map<string,HierarchyNode>& hierarchyNodeMap){
+	HierarchyNode liflif = HierarchyNode("liflif");
+	HierarchyNode liflrf = HierarchyNode("liflrf");
+	HierarchyNode liflnf = HierarchyNode("liflnf");
+	HierarchyNode lifdorf = HierarchyNode("lifdorf");
+
+
+	vector<HierarchyNode> next;
+	vector<int> nextCondition;
+	next.push_back(liflrf);
+	nextCondition.push_back(0);
+	next.push_back(lifdorf);
+	nextCondition.push_back(0);
+	liflif.setNext(next);
+
+	next.clear();
+	nextCondition.clear();
+	next.push_back(liflnf);
+	nextCondition.push_back(0);
+	liflrf.setNext(next);
+	liflrf.setNextCondition(nextCondition);
+	hierarchyNodeMap["liflif"] = liflif;
+}
+
+
+
+hash_set<HierarchyNode> getBelowNodeByCondition(int condition, string faultType, hash_map<string, HierarchyNode>& hierarchyMap, hash_set<HierarchyNode>& nodeSet){
+	HierarchyNode thisNode = hierarchyMap[faultType];
+	//层次遍历
+	traversal(nodeSet, &thisNode, condition);
+	return nodeSet;
+}
+
+
+bool traversal(hash_set<HierarchyNode>& nodeSet, HierarchyNode* node, int condition){
+	if (node == nullptr){
+		return true;
+	}
+	nodeSet.insert(*node);
+	vector<HierarchyNode> nextList = node->getNext();
+	for (int i = 0; i < nextList.size; i++){
+		if (nextList.at(i).getNextCOndition == condition){
+			nodeSet.insert(nextList.at(i));
+			traversal(nodeSet, &(nextList.at(i)), condition);
+		}
+	}
+}

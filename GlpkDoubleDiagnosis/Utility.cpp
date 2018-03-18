@@ -869,7 +869,7 @@ bool Utility::checkTestDiffer(string test, string exprOri/*原表达式*/, string ex
 	return v;
 }
 
-bool initHierarchyRelation(hash_map<string,HierarchyNode>& hierarchyNodeMap){
+bool Utility::initHierarchyRelation(hash_map<string, HierarchyNode>& hierarchyNodeMap,vector<HierarchyNode>& hierarchyEntry){
 	HierarchyNode liflif = HierarchyNode("liflif");
 	HierarchyNode liflrf = HierarchyNode("liflrf");
 	HierarchyNode liflnf = HierarchyNode("liflnf");
@@ -883,6 +883,7 @@ bool initHierarchyRelation(hash_map<string,HierarchyNode>& hierarchyNodeMap){
 	next.push_back(lifdorf);
 	nextCondition.push_back(0);
 	liflif.setNext(next);
+	liflif.setNextCondition(nextCondition);
 
 	next.clear();
 	nextCondition.clear();
@@ -891,27 +892,32 @@ bool initHierarchyRelation(hash_map<string,HierarchyNode>& hierarchyNodeMap){
 	liflrf.setNext(next);
 	liflrf.setNextCondition(nextCondition);
 	hierarchyNodeMap["liflif"] = liflif;
+	hierarchyNodeMap["liflrf"] = liflrf;
+
+	hierarchyEntry.push_back(liflif);
+	hierarchyEntry.push_back(liflrf);
+	return true;
 }
 
 
 
-hash_set<HierarchyNode> getBelowNodeByCondition(int condition, string faultType, hash_map<string, HierarchyNode>& hierarchyMap, hash_set<HierarchyNode>& nodeSet){
+bool Utility::getBelowNodeByCondition(int condition, string faultType, hash_map<string, HierarchyNode>& hierarchyMap, hash_map<string, HierarchyNode>& nodeSet){
 	HierarchyNode thisNode = hierarchyMap[faultType];
 	//层次遍历
 	traversal(nodeSet, &thisNode, condition);
-	return nodeSet;
+	return true;
 }
 
 
-bool traversal(hash_set<HierarchyNode>& nodeSet, HierarchyNode* node, int condition){
+bool Utility::traversal(hash_map<string, HierarchyNode>& nodeSet, HierarchyNode* node, int condition){
 	if (node == nullptr){
 		return true;
 	}
-	nodeSet.insert(*node);
+	nodeSet[node->getValue()] == *node;
 	vector<HierarchyNode> nextList = node->getNext();
-	for (int i = 0; i < nextList.size; i++){
-		if (nextList.at(i).getNextCOndition == condition){
-			nodeSet.insert(nextList.at(i));
+	for (int i = 0; i < nextList.size(); i++){
+		if (node->getNextCondition().at(i) == condition || node->getNextCondition().at(i) == 0){
+			nodeSet[nextList.at(i).getValue()] = nextList.at(i);
 			traversal(nodeSet, &(nextList.at(i)), condition);
 		}
 	}

@@ -2,7 +2,10 @@
 
 #include <string>
 #include <vector>
+#include <hash_set>
+#include <hash_map>
 #include "Mutants.h"
+#include "HierarchyNode.h"
 
 class DnfMutant
 {
@@ -225,6 +228,23 @@ public:
 	Mutants generateDORFxLRFdoublemutants(string exp);//DORF x LRF
 	Mutants generateTOFxLRFdoublemutants(string exp);//TOFxLRF
 
+	Mutants DnfMutant::diagnosisSingleTermLIFxLIFdoublemutants(
+		string exp,
+		string faultExp,//待测表达式
+		hash_set<string>& outMutant,//排除的变体格式
+		vector<vector<string>> optiUniformitySet,//最优无效点
+		vector<vector<string>> optiDifferSet,//最优有效点
+		hash_map<string, HierarchyNode>& hierarchyMap
+		);
+
+	Mutants DnfMutant::diagnosisSingleTermLIFxLRFdoublemutants(
+		string exp,
+		string faultExp,//待测表达式
+		hash_set<string>& outMutant,//排除的变体格式
+		vector<vector<string>> optiUniformitySet,//最优无效点
+		vector<vector<string>> optiDifferSet,//最优有效点
+		hash_map<string, HierarchyNode>& hierarchyMap
+		);
 
 
 	//对表达式进行预处理，将项才分到terms中，vars记录字母是否出现

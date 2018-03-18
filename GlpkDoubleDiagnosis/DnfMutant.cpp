@@ -8793,13 +8793,47 @@ Mutants DnfMutant::generateCORFxLRFWithOrderCase2doublemutants(string exp, vecto
 	return mutants;
 }
 
+bool addOutMutant(string oriExp,
+	hash_set<string>& outMutant,//排除的变体格式
+	string op,//无效点
+	int termSeq,//发生缺陷项的位置
+	string new_term,//发生缺陷后的项
+	string faultType,//第一次发生缺陷的类型
+	string doubleFaultType,//此双缺陷的类型
+	hash_map<string, HierarchyNode>& hierarchyMap){
+
+	Utility uti;
+	bool v1 = uti.evaluate(oriExp, op);
+	int condition = 0;
+	if (v1){
+		//原表达式为1，对变体而言又是有效点，所以是收缩点
+		condition = 1;
+	}
+	else{
+		condition = 2;
+	}
+	//获取层次关系下面需要排除的变体格式(遍历图)
+	hash_map<string, HierarchyNode> nodeSet;
+	uti.getBelowNodeByCondition(condition,doubleFaultType, hierarchyMap, nodeSet);
+	for (hash_map<string,HierarchyNode>::iterator iter = nodeSet.begin(); iter != nodeSet.end(); iter++){
+		//第一次缺陷后的表达式
+		//exp = oriExp;
+		//exp = exp.replace(exp.begin() + pos, exp.begin() + pos + terms[i].size(), new_term11);
+		//在第i个term上发生了lif缺陷，变成了new_term11
+		string spec = faultType.append(std::to_string(termSeq)).append(new_term).append((*iter).first);
+		outMutant.insert(spec);
+	}
+	return true;
+
+}
+
 //生成变体的同时check有效点和无效点
 Mutants DnfMutant::diagnosisSingleTermLIFxLIFdoublemutants
 (	string exp,
     string faultExp,//待测表达式
-	hash_set<string> outMutant,//排除的变体格式
+	hash_set<string>& outMutant,//排除的变体格式
 	vector<vector<string>> optiUniformitySet,//最优无效点
-	vector<vector<string>> optiDifferSet,//最优有效点)
+	vector<vector<string>> optiDifferSet,//最优有效点
 	hash_map<string,HierarchyNode>& hierarchyMap)
 {
 	Mutants mutants(exp);
@@ -8841,7 +8875,12 @@ Mutants DnfMutant::diagnosisSingleTermLIFxLIFdoublemutants
 				//第一次LIF
 				new_term11 += s11;
 				new_term12 += s12;
-
+				if (outMutant.count("lif" + i + new_term11 + "liflif") != 0){
+					new_term11 = "out";
+				}
+				if (outMutant.count("lif" + i + new_term12 + "liflif") != 0){
+					new_term12 = "out";
+				}
 				for (int k = j + 1; k < 26; k++)//遍历other term剩下的词literal
 				{
 					char toInsert2 = 'a' + k;
@@ -8853,6 +8892,7 @@ Mutants DnfMutant::diagnosisSingleTermLIFxLIFdoublemutants
 						s22 += toInsert2;
 
 						string new_term21, new_term22, new_term23, new_term24;
+
 						new_term21 = new_term11;
 						new_term22 = new_term11;
 						new_term23 = new_term12;
@@ -8863,71 +8903,248 @@ Mutants DnfMutant::diagnosisSingleTermLIFxLIFdoublemutants
 						new_term22 += s22;
 						new_term23 += s21;
 						new_term24 += s22;
+						bool equalFlag = true;
+						if (new_term11.compare("out") != 0){
+							string m1;
+							string _mutant1 = oriExp;
+							//变体1
+							_mutant1.replace(_mutant1.begin() + pos, _mutant1.begin() + pos + terms[i].size(), new_term21);
+							m1.append(_mutant1);
+							faultterms = { new_term21 };
 
-						string m1;
-						string _mutant1 = oriExp;
-						//变体1
-						_mutant1.replace(_mutant1.begin() + pos, _mutant1.begin() + pos + terms[i].size(), new_term21);
-						m1.append(_mutant1);
-						faultterms = { new_term21 };
-						
-						//todo check
-						for (int i = 0; i < optiUniformitySet.size(); i++){
-							//printf("point: %s, faultExp: %s, mutant: %s\n", optiUniformitySet[i][0].c_str(), faultExp.c_str(), mutant.c_str());
-							if (uti.checkTestDiffer(optiUniformitySet[i][0], faultExp, m1)){
-								bool v1 = uti.evaluate(oriExp, optiUniformitySet[i][0]);
-								int condition = 0;
-								if (v1){
-								//原表达式为1，对变体而言又是有效点，所以是收缩点
-									condition = 1;
+							//todo check
+							for (int i = 0; i < optiUniformitySet.size(); i++){
+								//printf("point: %s, faultExp: %s, mutant: %s\n", optiUniformitySet[i][0].c_str(), faultExp.c_str(), mutant.c_str());
+								if (uti.checkTestDiffer(optiUniformitySet[i][0], faultExp, m1)){
+									addOutMutant(oriExp, outMutant, optiUniformitySet[i][0],i,new_term11,"lif","liflif",hierarchyMap);
+									equalFlag = false;
+									break;
 								}
-								else{
-									condition = 2;
+							}
+							if (!equalFlag){
+								mutants.addMutant(m1, "DLIIF", oriterms, faultterms);
+							}
+							faultterms.clear();
+
+							string m2;
+							string _mutant2 = oriExp;
+							//变体2
+							_mutant2.replace(_mutant2.begin() + pos, _mutant2.begin() + pos + terms[i].size(), new_term22);
+							m2.append(_mutant2);
+							faultterms = { new_term22 };
+							equalFlag = true;
+							for (int i = 0; i < optiUniformitySet.size(); i++){
+								//printf("point: %s, faultExp: %s, mutant: %s\n", optiUniformitySet[i][0].c_str(), faultExp.c_str(), mutant.c_str());
+								if (uti.checkTestDiffer(optiUniformitySet[i][0], faultExp, m2)){
+									//根据层次关系将一些变体排除
+									addOutMutant(oriExp, outMutant, optiUniformitySet[i][0], i, new_term11, "lif", "liflif", hierarchyMap);
+									equalFlag = false;
+									break;
 								}
-								//获取层次关系下面需要排除的变体格式(遍历图)
-								hash_set<HierarchyNode> nodeSet;
-								uti.getBelowNodeByCondition(condition, "liflif", hierarchyMap, nodeSet);
-								for (hash_set<HierarchyNode>::iterator iter = nodeSet.begin(); iter != nodeSet.end(); iter++){
-									//第一次缺陷后的表达式
-									//exp = oriExp;
-									//exp = exp.replace(exp.begin() + pos, exp.begin() + pos + terms[i].size(), new_term11);
-									//在第i个term上发生了lif缺陷，变成了new_term11
-									string spec = "lif" + i + new_term11 + (*iter).getValue;
-									outMutant.insert(spec);
+							}
+							if (!equalFlag){
+								mutants.addMutant(m2, "DLIIF", oriterms, faultterms);
+							}
+							faultterms.clear();
+						}
+						if (new_term11.compare("out") != 0){
+							string m3;
+							string _mutant3 = oriExp;
+							//变体3
+							_mutant3.replace(_mutant3.begin() + pos, _mutant3.begin() + pos + terms[i].size(), new_term23);
+							m3.append(_mutant3);
+							faultterms = { new_term23 };
+						    equalFlag = true;
+							for (int i = 0; i < optiUniformitySet.size(); i++){
+								//printf("point: %s, faultExp: %s, mutant: %s\n", optiUniformitySet[i][0].c_str(), faultExp.c_str(), mutant.c_str());
+								if (uti.checkTestDiffer(optiUniformitySet[i][0], faultExp, m3)){
+									addOutMutant(oriExp, outMutant, optiUniformitySet[i][0], i, new_term12, "lif", "liflif", hierarchyMap);
+									equalFlag = false;
+									break;
 								}
-								break;
+							}
+							if (!equalFlag){
+								mutants.addMutant(m3, "DLIIF", oriterms, faultterms);
+							}
+							faultterms.clear();
+
+							string m4;
+							string _mutant4 = oriExp;
+							//变体4
+							_mutant4.replace(_mutant4.begin() + pos, _mutant4.begin() + pos + terms[i].size(), new_term24);
+							m4.append(_mutant4);
+							faultterms = { new_term24 };
+							equalFlag = true;
+							for (int i = 0; i < optiUniformitySet.size(); i++){
+								//printf("point: %s, faultExp: %s, mutant: %s\n", optiUniformitySet[i][0].c_str(), faultExp.c_str(), mutant.c_str());
+								if (uti.checkTestDiffer(optiUniformitySet[i][0], faultExp, m4)){
+									addOutMutant(oriExp, outMutant, optiUniformitySet[i][0], i, new_term12, "lif", "liflif", hierarchyMap);
+									equalFlag = false;
+									break;
+								}
+							}
+							if (!equalFlag){
+								mutants.addMutant(m4, "DLIIF", oriterms, faultterms);
+							}
+							faultterms.clear();
+						}
+					}
+				}
+			}
+		}
+	}
+	return mutants;
+}
+
+Mutants DnfMutant::diagnosisSingleTermLIFxLRFdoublemutants(
+	string exp,
+	string faultExp,//待测表达式
+	hash_set<string>& outMutant,//排除的变体格式
+	vector<vector<string>> optiUniformitySet,//最优无效点
+	vector<vector<string>> optiDifferSet,//最优有效点
+	hash_map<string, HierarchyNode>& hierarchyMap
+	)
+{
+	Mutants mutants(exp);
+	bool vars[26];
+	for (int i = 0; i < 26; i++)
+	{
+		vars[i] = false;
+	}
+
+	string oriExp(exp);//原表达式
+	Utility uti;
+	vector<string> terms;//项
+	vector<vector<string>> terms_literals;//项中的词
+	vector<string> oriterms;
+	vector<string> faultterms;
+	uti.mutantsPreproccess(oriExp, terms, terms_literals, vars);//对表达式进行预处理，给参数中的项赋值
+
+	for (int i = 0; i < terms.size(); i++)//以term为单位，分别处理
+	{
+		oriterms.clear();
+		oriterms = { terms[i] };
+		vector<string> literals_in_this_term = uti.extractCNFstyle(terms[i]);
+		int pos = oriExp.find(terms[i]);//当前项在表达式中的位置（从0开始计数）
+		for (int j = 0; j < 26; j++)//遍历26个字母
+		{
+			char toReplaceWith = 'a' + j;
+			string s11, s12;
+			s11 += toReplaceWith;
+			s12 += '!';
+			s12 += toReplaceWith;
+
+			if (vars[j] && terms[i].find(toReplaceWith) == string::npos)//表达式中存在 & 当前term中不存在 的词——vars[j]
+			{
+				for (int k = 0; k < literals_in_this_term.size(); k++)//遍历当前term中存在的词——literals_in_this_term[k]
+				{
+					string new_term11 = terms[i];
+					string new_term12 = terms[i];
+					int literal_pos = new_term11.find(literals_in_this_term[k]);//词在当前项中的位置
+					new_term11.replace(new_term11.begin() + literal_pos, new_term11.begin() + literal_pos + literals_in_this_term[k].size(), s11);
+					new_term12.replace(new_term12.begin() + literal_pos, new_term12.begin() + literal_pos + literals_in_this_term[k].size(), s12);
+
+					for (int l = 0; l < 26; l++)
+					{
+						char toReplaceWith2 = 'a' + l;
+						string s21, s22;
+						s21 += toReplaceWith2;
+						s22 += '!';
+						s22 += toReplaceWith2;
+						if (vars[l] && new_term11.find(toReplaceWith2) == string::npos && terms[i].find(toReplaceWith2) == string::npos)
+						{
+							string new_term21 = (new_term11 + s21);
+							string new_term22 = (new_term11 + s22);
+							string new_term23 = (new_term12 + s21);
+							string new_term24 = (new_term12 + s22);
+							bool equalFlag = true;
+							if (new_term11.compare("out") != 0){
+								string m1;
+								string _mutant1 = oriExp;
+								//变体1
+								_mutant1.replace(_mutant1.begin() + pos, _mutant1.begin() + pos + terms[i].size(), new_term21);
+								m1.append(_mutant1);
+								faultterms = { new_term21 };
+								equalFlag = true;
+								for (int i = 0; i < optiUniformitySet.size(); i++){
+									//printf("point: %s, faultExp: %s, mutant: %s\n", optiUniformitySet[i][0].c_str(), faultExp.c_str(), mutant.c_str());
+									if (uti.checkTestDiffer(optiUniformitySet[i][0], faultExp, m1)){
+										//根据层次关系将一些变体排除
+										addOutMutant(oriExp, outMutant, optiUniformitySet[i][0], i, new_term11, "lif", "liflrf", hierarchyMap);
+										equalFlag = false;
+										break;
+									}
+								}
+								if (!equalFlag){
+									mutants.addMutant(m1, "DLIRF", oriterms, faultterms);
+								}
+								faultterms.clear();
+
+								string m2;
+								string _mutant2 = oriExp;
+								//变体2
+								_mutant2.replace(_mutant2.begin() + pos, _mutant2.begin() + pos + terms[i].size(), new_term22);
+								m2.append(_mutant2);
+								faultterms = { new_term22 };
+							    equalFlag = true;
+								for (int i = 0; i < optiUniformitySet.size(); i++){
+									//printf("point: %s, faultExp: %s, mutant: %s\n", optiUniformitySet[i][0].c_str(), faultExp.c_str(), mutant.c_str());
+									if (uti.checkTestDiffer(optiUniformitySet[i][0], faultExp, m2)){
+										//根据层次关系将一些变体排除
+										addOutMutant(oriExp, outMutant, optiUniformitySet[i][0], i, new_term11, "lif", "liflif", hierarchyMap);
+										equalFlag = false;
+										break;
+									}
+								}
+								if (!equalFlag){
+									mutants.addMutant(m2, "DLIRF", oriterms, faultterms);
+								}
+								faultterms.clear();
+							}
+							if (new_term12.compare("out") != 0){
+								string m3;
+								string _mutant3 = oriExp;
+								//变体3
+								_mutant3.replace(_mutant3.begin() + pos, _mutant3.begin() + pos + terms[i].size(), new_term23);
+								m3.append(_mutant3);
+								faultterms = { new_term23 };
+								equalFlag = true;
+								for (int i = 0; i < optiUniformitySet.size(); i++){
+									//printf("point: %s, faultExp: %s, mutant: %s\n", optiUniformitySet[i][0].c_str(), faultExp.c_str(), mutant.c_str());
+									if (uti.checkTestDiffer(optiUniformitySet[i][0], faultExp, m3)){
+										//根据层次关系将一些变体排除
+										addOutMutant(oriExp, outMutant, optiUniformitySet[i][0], i, new_term11, "lif", "liflif", hierarchyMap);
+										equalFlag = false;
+										break;
+									}
+								}
+								if (!equalFlag){
+									mutants.addMutant(m3, "DLIRF", oriterms, faultterms);
+								}
+								faultterms.clear();
+
+								string m4;
+								string _mutant4 = oriExp;
+								//变体4
+								_mutant4.replace(_mutant4.begin() + pos, _mutant4.begin() + pos + terms[i].size(), new_term24);
+								m4.append(_mutant4);
+								faultterms = { new_term24 };
+								equalFlag = true;
+								for (int i = 0; i < optiUniformitySet.size(); i++){
+									//printf("point: %s, faultExp: %s, mutant: %s\n", optiUniformitySet[i][0].c_str(), faultExp.c_str(), mutant.c_str());
+									if (uti.checkTestDiffer(optiUniformitySet[i][0], faultExp, m4)){
+										//根据层次关系将一些变体排除
+										addOutMutant(oriExp, outMutant, optiUniformitySet[i][0], i, new_term11, "lif", "liflif", hierarchyMap);
+										equalFlag = false;
+										break;
+									}
+								}
+								if (!equalFlag){
+									mutants.addMutant(m4, "DLIRF", oriterms, faultterms);
+								}
+								faultterms.clear();
 							}
 						}
-
-						mutants.addMutant(m1, "DLIIF", oriterms, faultterms);
-						faultterms.clear();
-
-						string m2;
-						string _mutant2 = oriExp;
-						//变体2
-						_mutant2.replace(_mutant2.begin() + pos, _mutant2.begin() + pos + terms[i].size(), new_term22);
-						m2.append(_mutant2);
-						faultterms = { new_term22 };
-						mutants.addMutant(m2, "DLIIF", oriterms, faultterms);
-						faultterms.clear();
-
-						string m3;
-						string _mutant3 = oriExp;
-						//变体3
-						_mutant3.replace(_mutant3.begin() + pos, _mutant3.begin() + pos + terms[i].size(), new_term23);
-						m3.append(_mutant3);
-						faultterms = { new_term23 };
-						mutants.addMutant(m3, "DLIIF", oriterms, faultterms);
-						faultterms.clear();
-
-						string m4;
-						string _mutant4 = oriExp;
-						//变体4
-						_mutant4.replace(_mutant4.begin() + pos, _mutant4.begin() + pos + terms[i].size(), new_term24);
-						m4.append(_mutant4);
-						faultterms = { new_term24 };
-						mutants.addMutant(m4, "DLIIF", oriterms, faultterms);
-						faultterms.clear();
 					}
 				}
 			}

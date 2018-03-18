@@ -97,6 +97,7 @@
     <ClInclude Include="FaultDetection.h" />
     <ClInclude Include="glpk.h" />
     <ClInclude Include="GLPK_Solve.h" />
+    <ClInclude Include="HierarchyNode.h" />
     <ClInclude Include="LIFGenerateCellsForMutants.h" />
     <ClInclude Include="LIORFGenerateCells.h" />
     <ClInclude Include="LIORFGenerateCellsForMutants.h" />
@@ -141,6 +142,8 @@
     <ClCompile Include="FaultDetection.cpp" />
     <ClCompile Include="GlpkDoubleDiagnosis.cpp" />
     <ClCompile Include="GLPK_Solve.cpp" />
+    <ClCompile Include="Hierarchy.cpp" />
+    <ClCompile Include="HierarchyNode.cpp" />
     <ClCompile Include="LIFGenerateCellsForMutants.cpp" />
     <ClCompile Include="LIORFGenerateCells.cpp" />
     <ClCompile Include="LIORFGenerateCellsForMutants.cpp" />

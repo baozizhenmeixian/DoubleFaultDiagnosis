@@ -626,34 +626,51 @@ bool checkTestDiffer(string test, string exprOri/*原表达式*/, string expr/*变体*
 
 //诊断——用最优测试用例+层次关系
 //生成变体的同时进行判断，而不是把变体全部生成后判断
+/*
 bool diagnosisByHierarchy(
 	string oriExp,//原表达式
 	string faultExp,//待测表达式
 	vector<vector<string>> optiUniformitySet,//最优无效点
 	vector<vector<string>> optiDifferSet,//最优有效点
-	vector<HierarchyNode> hierarchyEntrySet
+	vector<HierarchyNode> hierarchyEntrySet,
+	hash_map<string, HierarchyNode>& hierarchyMap
 )
 {
 	for (int i = 0; i < hierarchyEntrySet.size; i++){
-	//对每个连通图进行遍历
+		//对每个连通图进行遍历
 		HierarchyNode root = hierarchyEntrySet.at(i);
 		string faultType = root.getValue;
-		diagnosisGivenFaultType()
+		string result = diagnosisGivenFaultType(oriExp, faultExp, "liflif", optiUniformitySet, optiDifferSet, root, hierarchyMap);
 	}
 
 }
-
+*/
 string diagnosisGivenFaultType(
 	string oriExp,//原表达式
 	string faultExp,//待测表达式
 	string faultType, //缺陷类型
 	vector<vector<string>> optiUniformitySet,//最优无效点
 	vector<vector<string>> optiDifferSet,//最优有效点
-	HierarchyNode root//当前缺陷对应节点
-
+	HierarchyNode root,//当前缺陷对应节点
+	hash_map<string, HierarchyNode> hierarchyMap
 	){
-	if (root.getValue == NULL){
+	DnfMutant dnfMutant;
+	if (root.getValue().empty()){
 		return "no";
+	}
+	if (root.getValue().compare("liflif") == 0){
+		hash_set<string> outMutant;
+		Mutants result = dnfMutant.diagnosisSingleTermLIFxLIFdoublemutants(oriExp, faultExp, outMutant, optiUniformitySet, optiDifferSet, hierarchyMap);
+		if (result.mutants.size() > 0){
+			return result.mutants.at(0).mutant;
+		}
+	}
+	if (root.getValue().compare("liflrf") == 0){
+		hash_set<string> outMutant;
+		Mutants result = dnfMutant.diagnosisSingleTermLIFxLRFdoublemutants(oriExp, faultExp, outMutant, optiUniformitySet, optiDifferSet, hierarchyMap);
+		if (result.mutants.size() > 0){
+			return result.mutants.at(0).mutant;
+		}
 	}
 
 
@@ -744,13 +761,15 @@ int main(int argc, char* argv[])
 	PRE_PROCESS_DATA preData;
 
 	//层次关系map
-	hash_map<string,HierarchyNode> hierarchyEntry;
+	hash_map<string,HierarchyNode> hierarchyMap;
+
+	vector<HierarchyNode> hierarchyEntry;
 
 	clock_t time1 = clock();
 	//转换为IDNF
 	Utility uti;
 	//初始化层次关系
-	uti.initHierarchyRelation(hierarchyEntry);
+	uti.initHierarchyRelation(hierarchyMap, hierarchyEntry);
 	vector<string> terms = uti.extractDNFstyle(expression);
 	string model = uti.generateModel(expression);
 	string newExp = "";
@@ -2170,15 +2189,19 @@ int main(int argc, char* argv[])
 
 
 		//根据层次关系筛选变体
-		//diagnosisByHierarchy（）
+		for (int i = 0; i < hierarchyEntry.size(); i++){
+			diagnosisGivenFaultType(newExp, faultExpression, hierarchyEntry.at(i).getValue(), uniformitySet, differSet, hierarchyEntry.at(i), hierarchyMap);
+		}
+		
 
-
+		/*
 		for (int i = 0; i < maybeFaultTypes.size(); i++){
 			string faultType = maybeFaultTypes.at(i);
 			if (diagnosis(newExp, faultExpression, faultType, terms, maybeFaultTerms, model, uniformitySet, differSet)){
 				return 0;
 			}
 		}
+		*/
 	}
 	return 0;
 }

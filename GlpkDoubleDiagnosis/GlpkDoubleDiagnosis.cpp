@@ -645,12 +645,13 @@ bool diagnosisByHierarchy(
 
 }
 */
-string diagnosisGivenFaultType(
+Mutants diagnosisGivenFaultType(
 	string oriExp,//原表达式
 	string faultExp,//待测表达式
 	string faultType, //缺陷类型
 	vector<vector<string>> optiUniformitySet,//最优无效点
 	vector<vector<string>> optiDifferSet,//最优有效点
+	hash_set<string>& outMutant,//排除的变体格式
 	HierarchyNode root,//当前缺陷对应节点
 	hash_map<string, HierarchyNode> hierarchyMap
 	){
@@ -658,22 +659,46 @@ string diagnosisGivenFaultType(
 	if (root.getValue().empty()){
 		return "no";
 	}
+	Mutants finalresult(oriExp);
 	if (root.getValue().compare("liflif") == 0){
-		hash_set<string> outMutant;
+
 		Mutants result = dnfMutant.diagnosisSingleTermLIFxLIFdoublemutants(oriExp, faultExp, outMutant, optiUniformitySet, optiDifferSet, hierarchyMap);
-		if (result.mutants.size() > 0){
-			return result.mutants.at(0).mutant;
-		}
+		return result;
 	}
 	if (root.getValue().compare("liflrf") == 0){
-		hash_set<string> outMutant;
 		Mutants result = dnfMutant.diagnosisSingleTermLIFxLRFdoublemutants(oriExp, faultExp, outMutant, optiUniformitySet, optiDifferSet, hierarchyMap);
-		if (result.mutants.size() > 0){
-			return result.mutants.at(0).mutant;
-		}
+		return result;
+	}
+	if (root.getValue().compare("liflnf") == 0){
+		Mutants result = dnfMutant.diagnosisSingleTermLIFxLNFdoublemutants(oriExp, faultExp, outMutant, optiUniformitySet, optiDifferSet, hierarchyMap);
+		return result;
+	}
+	if (root.getValue().compare("liftnf") == 0){
+		Mutants result = dnfMutant.diagnosisSingleTermLIFxTNFdoublemutants(oriExp, faultExp, outMutant, optiUniformitySet, optiDifferSet, hierarchyMap);
+		return result;
+	}
+
+	if (root.getValue().compare("lrflrf") == 0){
+		Mutants result = dnfMutant.diagnosisSingleTermLRFxLRFdoublemutants(oriExp, faultExp, outMutant, optiUniformitySet, optiDifferSet, hierarchyMap);
+		return result;
+	}
+
+	if (root.getValue().compare("lrflof") == 0){
+		Mutants result = dnfMutant.diagnosisSingleTermLRFxLOFdoublemutants(oriExp, faultExp, outMutant, optiUniformitySet, optiDifferSet, hierarchyMap);
+		return result;
+	}
+
+	if (root.getValue().compare("lrflnf") == 0){
+		Mutants result = dnfMutant.diagnosisSingleTermLRFxLNFdoublemutants(oriExp, faultExp, outMutant, optiUniformitySet, optiDifferSet, hierarchyMap);
+		return result;
 	}
 
 
+
+	if (root.getValue().compare("lrfcorf") == 0){
+		Mutants result = dnfMutant.diagnosisSingleTermLRFxCORFdoublemutants(oriExp, faultExp, outMutant, optiUniformitySet, optiDifferSet, hierarchyMap);
+		return result;
+	}
 
 }
 
@@ -769,7 +794,7 @@ int main(int argc, char* argv[])
 	//转换为IDNF
 	Utility uti;
 	//初始化层次关系
-	uti.initHierarchyRelation(hierarchyMap, hierarchyEntry);
+	uti.initHierarchyRelation(&hierarchyMap, &hierarchyEntry);
 	vector<string> terms = uti.extractDNFstyle(expression);
 	string model = uti.generateModel(expression);
 	string newExp = "";
@@ -1043,8 +1068,8 @@ int main(int argc, char* argv[])
 		//printf("%s\n", point01Str.c_str());
 	}
 	clock_t time2 = clock();
-	//printf("testcase num[%d] time[%d] mutants num[%d]\n", testset.size(), time2 - time1, mutants.size());
-	//printf("测试用例生成完毕[%s]\n", faultExpression.c_str());
+	printf("testcase num[%d] time[%d] mutants num[%d]\n", testset.size(), time2 - time1, mutants.size());
+	printf("测试用例生成完毕[%s]\n", faultExpression.c_str());
 
 	vector<vector<int>> DP_Matrix;
 	vector<vector<int>> case_mutant;
@@ -1957,7 +1982,7 @@ int main(int argc, char* argv[])
 		}
 		printf("\n");
 		*/
-		
+		/*
 		//根据已知条件确定双向双缺陷
 		//确定策略，首先根据term生成变体，如果是LNF相关的，则生成LNF相关的缺陷
 		DnfMutant dnfMutant;
@@ -2185,12 +2210,19 @@ int main(int argc, char* argv[])
 		maybeFaultTypes.push_back("CORFxLIF");	//14、CORFxLIF
 		maybeFaultTypes.push_back("CORFxLRF");	//14、CORFxLRF
 
+		*/
+
 		//todo 初次筛选缺陷，根据汉明距离和收缩扩张特性排除缺陷，表现为层次关系节点的isOut置为1；
 
-
+		hash_set<string> outMutant;
 		//根据层次关系筛选变体
 		for (int i = 0; i < hierarchyEntry.size(); i++){
-			diagnosisGivenFaultType(newExp, faultExpression, hierarchyEntry.at(i).getValue(), uniformitySet, differSet, hierarchyEntry.at(i), hierarchyMap);
+			Mutants finalresult(newExp);
+			Mutants result = diagnosisGivenFaultType(newExp, faultExpression, hierarchyEntry.at(i).getValue(), uniformitySet, differSet, outMutant, hierarchyEntry.at(i), hierarchyMap);
+			for (int i = 0; i < result.mutants.size(); i++)
+			{
+				finalresult.mutants.push_back(result.mutants.at(i));
+			}
 		}
 		
 

@@ -869,33 +869,138 @@ bool Utility::checkTestDiffer(string test, string exprOri/*原表达式*/, string ex
 	return v;
 }
 
-bool Utility::initHierarchyRelation(hash_map<string, HierarchyNode>& hierarchyNodeMap,vector<HierarchyNode>& hierarchyEntry){
-	HierarchyNode liflif = HierarchyNode("liflif");
-	HierarchyNode liflrf = HierarchyNode("liflrf");
-	HierarchyNode liflnf = HierarchyNode("liflnf");
-	HierarchyNode lifdorf = HierarchyNode("lifdorf");
+bool Utility::initHierarchyRelation(hash_map<string, HierarchyNode>* hierarchyNodeMap,vector<HierarchyNode>* hierarchyEntry){
+	
+	static HierarchyNode liflif = HierarchyNode("liflif");
+	static HierarchyNode liflrf = HierarchyNode("liflrf");
+	static HierarchyNode liflnf = HierarchyNode("liflnf");
+	//static HierarchyNode lifdorf = HierarchyNode("lifdorf");
+	static HierarchyNode liftnf = HierarchyNode("liftnf");
+	static HierarchyNode lifcorf = HierarchyNode("lifcorf");
 
+	static HierarchyNode lrflrf = HierarchyNode("lrflrf");
+	static HierarchyNode lrflof = HierarchyNode("lrflof");
+	static HierarchyNode lrflnf = HierarchyNode("lrflnf");
+	static HierarchyNode lrfcorf = HierarchyNode("lrfcorf");
+	static HierarchyNode lrftnf = HierarchyNode("lrftnf");
 
-	vector<HierarchyNode> next;
+	static HierarchyNode loflof = HierarchyNode("loflof");
+	static HierarchyNode loflnf = HierarchyNode("loflnf");
+	static HierarchyNode lofcorf = HierarchyNode("lofcorf");
+	static HierarchyNode loftnf = HierarchyNode("loftnf");
+
+	static HierarchyNode lnflnf = HierarchyNode("lnflnf");
+	static HierarchyNode lnftnf = HierarchyNode("lnftnf");
+	static HierarchyNode lnfcorf = HierarchyNode("lnfcorf");
+
+	static HierarchyNode dorflif = HierarchyNode("dorflif");
+	static HierarchyNode dorflof = HierarchyNode("dorflof");
+	static HierarchyNode dorflnf = HierarchyNode("dorflnf");
+
+	//liflif
+	vector<HierarchyNode*> next;
 	vector<int> nextCondition;
-	next.push_back(liflrf);
-	nextCondition.push_back(0);
-	next.push_back(lifdorf);
+	next.push_back(&liflrf);
+	nextCondition.push_back(1);
+	//next.push_back(&lifdorf);
+	//nextCondition.push_back(0);
+	next.push_back(&liflnf);
 	nextCondition.push_back(0);
 	liflif.setNext(next);
 	liflif.setNextCondition(nextCondition);
+	//liflrf
+	next.clear();
+	nextCondition.clear();
+	next.push_back(&liflnf);
+	nextCondition.push_back(1);
+	liflrf.setNext(next);
+	liflrf.setNextCondition(nextCondition);
+	//liftnf
+	next.clear();
+	nextCondition.clear();
+	next.push_back(&liftnf);
+	nextCondition.push_back(1);
+	liflnf.setNext(next);
+	liflnf.setNextCondition(nextCondition);
+
+
+	/*
+
+	//liflif
+	vector<HierarchyNode*> next;
+	vector<int> nextCondition;
+	next.push_back(&liflrf);
+	nextCondition.push_back(0);
+	//next.push_back(&lifdorf);
+	//nextCondition.push_back(0);
+	next.push_back(&liflnf);
+	nextCondition.push_back(0);
+	liflif.setNext(next);
+	liflif.setNextCondition(nextCondition);
+	//liflrf
+	//next.clear();
+	//nextCondition.clear();
+	//next.push_back(&liflnf);
+	//nextCondition.push_back(2);
+	//liflrf.setNext(next);
+	//liflrf.setNextCondition(nextCondition);
+	//liftnf
+	next.clear();
+	nextCondition.clear();
+	next.push_back(&liftnf);
+	nextCondition.push_back(0);
+	liflnf.setNext(next);
+	liflnf.setNextCondition(nextCondition);
+
 
 	next.clear();
 	nextCondition.clear();
-	next.push_back(liflnf);
+	next.push_back(&lrflof);
 	nextCondition.push_back(0);
-	liflrf.setNext(next);
-	liflrf.setNextCondition(nextCondition);
-	hierarchyNodeMap["liflif"] = liflif;
-	hierarchyNodeMap["liflrf"] = liflrf;
+	lrflrf.setNext(next);
+	lrflrf.setNextCondition(nextCondition);
 
-	hierarchyEntry.push_back(liflif);
-	hierarchyEntry.push_back(liflrf);
+	next.clear();
+	nextCondition.clear();
+	next.push_back(&lrfcorf);
+	nextCondition.push_back(1);
+	next.push_back(&lrflnf);
+	nextCondition.push_back(2);
+	lrflof.setNext(next);
+	lrflof.setNextCondition(nextCondition);
+	
+
+
+
+
+	(*hierarchyNodeMap)["liflif"] = liflif;
+	(*hierarchyNodeMap)["liflrf"] = liflrf;
+	(*hierarchyNodeMap)["liflnf"] = liflnf;
+	(*hierarchyNodeMap)["liftnf"] = liftnf;
+//	(*hierarchyNodeMap)["lifdorf"] = lifdorf;
+
+	(*hierarchyNodeMap)["lrflrf"] = lrflrf;
+	(*hierarchyNodeMap)["lrflof"] = lrflof;
+	(*hierarchyNodeMap)["lrfcorf"] = lrfcorf;
+	(*hierarchyNodeMap)["lrflnf"] = lrflnf;
+	(*hierarchyNodeMap)["lrftnf"] = lrftnf;
+
+	(*hierarchyEntry).push_back(liflif);
+	(*hierarchyEntry).push_back(liflrf);
+	(*hierarchyEntry).push_back(liflnf);
+	(*hierarchyEntry).push_back(liftnf);
+//	(*hierarchyEntry).push_back(lifdorf);
+
+	(*hierarchyEntry).push_back(lrflrf);
+	(*hierarchyEntry).push_back(lrflof);
+	(*hierarchyEntry).push_back(lrfcorf);
+
+	(*hierarchyEntry).push_back(lrflnf);
+	*/
+
+	(*hierarchyNodeMap)["liflrf"] = liflrf;
+	(*hierarchyNodeMap)["liflnf"] = liflnf;
+	(*hierarchyNodeMap)["liftnf"] = liftnf;
 	return true;
 }
 
@@ -905,6 +1010,7 @@ bool Utility::getBelowNodeByCondition(int condition, string faultType, hash_map<
 	HierarchyNode thisNode = hierarchyMap[faultType];
 	//层次遍历
 	traversal(nodeSet, &thisNode, condition);
+	nodeSet.erase(thisNode.getValue());
 	return true;
 }
 
@@ -914,11 +1020,11 @@ bool Utility::traversal(hash_map<string, HierarchyNode>& nodeSet, HierarchyNode*
 		return true;
 	}
 	nodeSet[node->getValue()] == *node;
-	vector<HierarchyNode> nextList = node->getNext();
+	vector<HierarchyNode *> nextList = node->getNext();
 	for (int i = 0; i < nextList.size(); i++){
 		if (node->getNextCondition().at(i) == condition || node->getNextCondition().at(i) == 0){
-			nodeSet[nextList.at(i).getValue()] = nextList.at(i);
-			traversal(nodeSet, &(nextList.at(i)), condition);
+			nodeSet[nextList.at(i)->getValue()] = *nextList.at(i);
+			traversal(nodeSet, nextList.at(i), condition);
 		}
 	}
 }

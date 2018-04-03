@@ -44,7 +44,7 @@ public:
 	vector<int> getTermsOpCount(string exp,bool DNF1CNF0);
 	bool isExpressionsEquivalent(string exp1, string exp2);
 	bool Utility::checkTestDiffer(string test, string exprOri/*原表达式*/, string expr/*变体*/);
-	bool initHierarchyRelation(hash_map<string, HierarchyNode>& hierarchyNodeMap, vector<HierarchyNode>& hierarchyEntry);
+	bool initHierarchyRelation(hash_map<string, HierarchyNode>* hierarchyNodeMap, vector<HierarchyNode>* hierarchyEntry);
 
 	//对表达式进行预处理，将项才分到terms中，vars记录字母是否出现
 	void mutantsPreproccess(string exp, vector<string> &terms, vector<vector<string>> &literals_in_terms, bool (&vars)[26]);

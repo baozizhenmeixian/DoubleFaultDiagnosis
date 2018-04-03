@@ -228,6 +228,31 @@ public:
 	Mutants generateDORFxLRFdoublemutants(string exp);//DORF x LRF
 	Mutants generateTOFxLRFdoublemutants(string exp);//TOFxLRF
 
+	bool checkDiffer(
+		string oriExp,
+		string faultExp,//待测表达式
+		string mutant,//待检测变体
+		string new_term_first,//第一次缺陷后的项
+		string first_falut_type,//第一次缺陷的类型
+		string doubleFaultType,//此双缺陷的类型
+		int termSeq,//发生缺陷的是第几项
+		int literalSeq,//发生缺陷的项的哪个词（字母顺序）
+		hash_set<string>& outMutant,//排除的变体格式
+		vector<vector<string>> optiUniformitySet,//最优无效点
+		vector<vector<string>> optiDifferSet,//最优有效点
+		hash_map<string, HierarchyNode>& hierarchyMap
+		);
+
+	bool addOutMutant(string oriExp,
+		hash_set<string>& outMutant,//排除的变体格式
+		string op,//无效点
+		int termSeq,//发生缺陷项的位置
+		int literalSeq,//第二次发生缺陷的是哪个词（字母顺序）
+		string new_term,//发生缺陷后的项
+		string faultType,//第一次发生缺陷的类型
+		string doubleFaultType,//此双缺陷的类型
+		hash_map<string, HierarchyNode>& hierarchyMap);
+
 	Mutants DnfMutant::diagnosisSingleTermLIFxLIFdoublemutants(
 		string exp,
 		string faultExp,//待测表达式
@@ -245,6 +270,162 @@ public:
 		vector<vector<string>> optiDifferSet,//最优有效点
 		hash_map<string, HierarchyNode>& hierarchyMap
 		);
+
+	Mutants DnfMutant::diagnosisSingleTermLIFxLNFdoublemutants(
+		string exp,
+		string faultExp,//待测表达式
+		hash_set<string>& outMutant,//排除的变体格式
+		vector<vector<string>> optiUniformitySet,//最优无效点
+		vector<vector<string>> optiDifferSet,//最优有效点
+		hash_map<string, HierarchyNode>& hierarchyMap
+		);
+
+	Mutants DnfMutant::diagnosisSingleTermLIFxTNFdoublemutants(
+		string exp,
+		string faultExp,//待测表达式
+		hash_set<string>& outMutant,//排除的变体格式
+		vector<vector<string>> optiUniformitySet,//最优无效点
+		vector<vector<string>> optiDifferSet,//最优有效点
+		hash_map<string, HierarchyNode>& hierarchyMap
+		);
+
+	Mutants DnfMutant::diagnosisSingleTermLIFxCORFdoublemutants(
+		string exp,
+		string faultExp,//待测表达式
+		hash_set<string>& outMutant,//排除的变体格式
+		vector<vector<string>> optiUniformitySet,//最优无效点
+		vector<vector<string>> optiDifferSet,//最优有效点
+		hash_map<string, HierarchyNode>& hierarchyMap
+		);
+
+	Mutants DnfMutant::diagnosisSingleTermLRFxLRFdoublemutants(
+		string exp,
+		string faultExp,//待测表达式
+		hash_set<string>& outMutant,//排除的变体格式
+		vector<vector<string>> optiUniformitySet,//最优无效点
+		vector<vector<string>> optiDifferSet,//最优有效点
+		hash_map<string, HierarchyNode>& hierarchyMap
+		);
+
+	Mutants DnfMutant::diagnosisSingleTermLRFxLOFdoublemutants(
+		string exp,
+		string faultExp,//待测表达式
+		hash_set<string>& outMutant,//排除的变体格式
+		vector<vector<string>> optiUniformitySet,//最优无效点
+		vector<vector<string>> optiDifferSet,//最优有效点
+		hash_map<string, HierarchyNode>& hierarchyMap
+		);
+
+	Mutants DnfMutant::diagnosisSingleTermLRFxLNFdoublemutants(
+		string exp,
+		string faultExp,//待测表达式
+		hash_set<string>& outMutant,//排除的变体格式
+		vector<vector<string>> optiUniformitySet,//最优无效点
+		vector<vector<string>> optiDifferSet,//最优有效点
+		hash_map<string, HierarchyNode>& hierarchyMap
+		);
+
+	Mutants DnfMutant::diagnosisSingleTermLRFxCORFdoublemutants(
+		string exp,
+		string faultExp,//待测表达式
+		hash_set<string>& outMutant,//排除的变体格式
+		vector<vector<string>> optiUniformitySet,//最优无效点
+		vector<vector<string>> optiDifferSet,//最优有效点
+		hash_map<string, HierarchyNode>& hierarchyMap
+		);
+
+	Mutants DnfMutant::diagnosisSingleTermLRFxTNFdoublemutants(
+		string exp,
+		string faultExp,//待测表达式
+		hash_set<string>& outMutant,//排除的变体格式
+		vector<vector<string>> optiUniformitySet,//最优无效点
+		vector<vector<string>> optiDifferSet,//最优有效点
+		hash_map<string, HierarchyNode>& hierarchyMap
+		);
+
+	Mutants DnfMutant::diagnosisSingleTermDORFxLIFdoublemutants(
+		string exp,
+		string faultExp,//待测表达式
+		hash_set<string>& outMutant,//排除的变体格式
+		vector<vector<string>> optiUniformitySet,//最优无效点
+		vector<vector<string>> optiDifferSet,//最优有效点
+		hash_map<string, HierarchyNode>& hierarchyMap
+		);
+
+	Mutants DnfMutant::diagnosisSingleTermDORFxLOFdoublemutants(
+		string exp,
+		string faultExp,//待测表达式
+		hash_set<string>& outMutant,//排除的变体格式
+		vector<vector<string>> optiUniformitySet,//最优无效点
+		vector<vector<string>> optiDifferSet,//最优有效点
+		hash_map<string, HierarchyNode>& hierarchyMap
+		);
+
+	Mutants DnfMutant::diagnosisSingleTermDORFxLNFdoublemutants(
+		string exp,
+		string faultExp,//待测表达式
+		hash_set<string>& outMutant,//排除的变体格式
+		vector<vector<string>> optiUniformitySet,//最优无效点
+		vector<vector<string>> optiDifferSet,//最优有效点
+		hash_map<string, HierarchyNode>& hierarchyMap
+		);
+	Mutants DnfMutant::diagnosisSingleTermLOFxLOFdoublemutants(
+		string exp,
+		string faultExp,//待测表达式
+		hash_set<string>& outMutant,//排除的变体格式
+		vector<vector<string>> optiUniformitySet,//最优无效点
+		vector<vector<string>> optiDifferSet,//最优有效点
+		hash_map<string, HierarchyNode>& hierarchyMap
+		);
+	Mutants DnfMutant::diagnosisSingleTermLOFxLNFdoublemutants(
+		string exp,
+		string faultExp,//待测表达式
+		hash_set<string>& outMutant,//排除的变体格式
+		vector<vector<string>> optiUniformitySet,//最优无效点
+		vector<vector<string>> optiDifferSet,//最优有效点
+		hash_map<string, HierarchyNode>& hierarchyMap
+		);
+	Mutants DnfMutant::diagnosisSingleTermLOFxTNFdoublemutants(
+		string exp,
+		string faultExp,//待测表达式
+		hash_set<string>& outMutant,//排除的变体格式
+		vector<vector<string>> optiUniformitySet,//最优无效点
+		vector<vector<string>> optiDifferSet,//最优有效点
+		hash_map<string, HierarchyNode>& hierarchyMap
+		);
+	Mutants DnfMutant::diagnosisSingleTermLOFxCORFdoublemutants(
+		string exp,
+		string faultExp,//待测表达式
+		hash_set<string>& outMutant,//排除的变体格式
+		vector<vector<string>> optiUniformitySet,//最优无效点
+		vector<vector<string>> optiDifferSet,//最优有效点
+		hash_map<string, HierarchyNode>& hierarchyMap
+		);
+	Mutants DnfMutant::diagnosisSingleTermLNFxLNFdoublemutants(
+		string exp,
+		string faultExp,//待测表达式
+		hash_set<string>& outMutant,//排除的变体格式
+		vector<vector<string>> optiUniformitySet,//最优无效点
+		vector<vector<string>> optiDifferSet,//最优有效点
+		hash_map<string, HierarchyNode>& hierarchyMap
+		);
+	Mutants DnfMutant::diagnosisSingleTermLNFxTNFdoublemutants(
+		string exp,
+		string faultExp,//待测表达式
+		hash_set<string>& outMutant,//排除的变体格式
+		vector<vector<string>> optiUniformitySet,//最优无效点
+		vector<vector<string>> optiDifferSet,//最优有效点
+		hash_map<string, HierarchyNode>& hierarchyMap
+		);
+	Mutants DnfMutant::diagnosisSingleTermLNFxCORFdoublemutants(
+		string exp,
+		string faultExp,//待测表达式
+		hash_set<string>& outMutant,//排除的变体格式
+		vector<vector<string>> optiUniformitySet,//最优无效点
+		vector<vector<string>> optiDifferSet,//最优有效点
+		hash_map<string, HierarchyNode>& hierarchyMap
+		);
+
 
 
 	//对表达式进行预处理，将项才分到terms中，vars记录字母是否出现

@@ -16,11 +16,14 @@ public:
 	void setNextCondition(vector<int> v){ nextConditon = v; };
 	vector<int> getNextCondition(){ return nextConditon; };
 
+	void setNeedliteral(bool v){ needliteral = v; };
+	int getNeedliteral()const{ return needliteral; };
+
 	void setIsOut(bool v){ isOut = v; };
 	int getIsOut()const{ return isOut; };
 
-	void setNext(vector<HierarchyNode> v){ next = v; };
-	vector<HierarchyNode> getNext(){ return next; };
+	void setNext(vector<HierarchyNode *> v){ next = v; };
+	vector<HierarchyNode *> getNext(){ return next; };
 
 	bool operator==(const HierarchyNode & my) const{
 		return (value == my.value);
@@ -38,9 +41,10 @@ public:
 
 private:
 	string value;
-	vector<HierarchyNode> next;
-	vector<int> nextConditon;
+	vector<HierarchyNode*> next;
+	vector<int> nextConditon;//1扩张2收缩
 	bool isOut;
+	bool needliteral;//排除时是否需要精确到词；
 };
 
 struct hash_HierarchyNode{
